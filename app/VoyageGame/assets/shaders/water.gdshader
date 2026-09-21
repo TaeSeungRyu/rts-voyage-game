@@ -1,89 +1,122 @@
 shader_type spatial;
 
-render_mode diffuse_burley, specular_schlick_ggx;
+render_mode unshaded;
 
+
+// 기본 바다색
 uniform vec4 water_color : source_color =
-    vec4(0.10, 0.62, 0.86, 1.0);
+    vec4(0.08, 0.58, 0.82, 1.0);
 
-uniform vec4 wave_color : source_color =
-    vec4(0.38, 0.80, 0.95, 1.0);
 
-uniform float wave_speed = 0.7;
-uniform float wave_scale = 5.0;
-uniform float wave_strength = 0.18;
+// 흐름 속도
+uniform float flow_speed = 1.0;
 
-// C#에서 실제 타일 위치 전달
+
+// 색 변화량
+// 정말 약하게
+uniform float flow_strength = 0.025;
+
+
+// C#에서 전달받는 타일 위치
 uniform vec2 tile_position = vec2(0.0);
 
-varying vec2 world_wave_position;
+
+varying vec2 world_pos;
 
 
 void vertex()
 {
-    // 로컬 좌표 + 타일 위치
-    // → 바다 전체가 하나의 좌표계를 사용
-    world_wave_position =
-        VERTEX.xz + tile_position;
+    // Mesh 자체는 절대 움직이지 않는다.
+    world_pos =
+        VERTEX.xz
+        + tile_position;
 }
 
 
 void fragment()
 {
+    vec2 p = world_pos;
+
     float t =
-        TIME * wave_speed;
-
-    vec2 p =
-        world_wave_position;
+        TIME * flow_speed;
 
 
-    // 큰 물결
-    float wave1 =
+    // ------------------------------------------------
+    // 첫 번째 흐름
+    //
+    // 매우 넓고 완만한 대각선 흐름
+    // ------------------------------------------------
+
+    float flow1 =
         sin(
-            p.x * wave_scale
-            + p.y * 1.4
+            p.x * 0.65
+            + p.y * 0.28
             - t
         );
 
 
-    // 약간 다른 방향의 작은 물결
-    float wave2 =
+    // ------------------------------------------------
+    // 두 번째 흐름
+    //
+    // 방향과 속도를 다르게
+    // ------------------------------------------------
+
+    float flow2 =
         sin(
-            p.x * 2.2
-            - p.y * 3.2
-            - t * 0.65
+            p.x * 0.31
+            - p.y * 0.52
+            - t * 0.63
         );
 
 
-    float wave =
-        wave1 * 0.7
-        + wave2 * 0.3;
+    // ------------------------------------------------
+    // 세 번째 흐름
+    //
+    // 더 넓고 아주 느리게
+    // ------------------------------------------------
 
-
-    wave =
-        wave * 0.5 + 0.5;
-
-
-    // 이전보다 부드럽게
-    wave =
-        smoothstep(
-            0.35,
-            0.75,
-            wave
+    float flow3 =
+        sin(
+            p.x * 0.17
+            + p.y * 0.21
+            + t * 0.35
         );
 
 
-    wave *=
-        wave_strength;
+    // ------------------------------------------------
+    // 합성
+    // ------------------------------------------------
+
+    float flow =
+        flow1 * 0.50
+        + flow2 * 0.30
+        + flow3 * 0.20;
 
 
-    ALBEDO =
-        mix(
-            water_color.rgb,
-            wave_color.rgb,
-            wave
+    // 너무 선명하지 않게
+    flow =
+        clamp(
+            flow,
+            -1.0,
+            1.0
         );
 
 
-    ROUGHNESS = 0.72;
-    METALLIC = 0.0;
+    // ------------------------------------------------
+    // 색 변화
+    //
+    // RGB 전체를 바꾸는 대신
+    // 밝기만 아주 조금 변화
+    // ------------------------------------------------
+
+    vec3 color =
+        water_color.rgb;
+
+
+    color *=
+        1.0
+        + flow * flow_strength;
+
+
+    ALBEDO = color;
 }

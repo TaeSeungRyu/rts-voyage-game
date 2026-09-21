@@ -6,7 +6,6 @@ public partial class WorldMap : Node3D
     // --------------------------------------------------
     // 타일 타입
     // --------------------------------------------------
-
     private const int Water = 0;
     private const int Grass = 1;
 
@@ -14,10 +13,8 @@ public partial class WorldMap : Node3D
     // --------------------------------------------------
     // 맵 설정
     // --------------------------------------------------
-
     private float _tileWidth = 1.0f;
     private float _tileHeight = 1.0f;
-
     private string[] _tiles = Array.Empty<string>();
 
 
