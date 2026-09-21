@@ -27,7 +27,7 @@ public partial class WorldMap : Node3D
 
     private PackedScene _waterScene = null!;
     private PackedScene _grassScene = null!;
-    private PackedScene _waveScene = null!;
+    private Shader _waterShader = null!;
 
 
     // --------------------------------------------------
@@ -59,12 +59,10 @@ public partial class WorldMap : Node3D
             GD.Load<PackedScene>(
                 "res://assets/models/grass.glb"
             );
-
-        _waveScene =
-            GD.Load<PackedScene>(
-                "res://assets/models/wave.glb"
-            );
-
+        _waterShader =
+            GD.Load<Shader>(
+                "res://assets/shaders/water.gdshader"
+            );            
 
         if (_waterScene == null)
         {
@@ -80,10 +78,10 @@ public partial class WorldMap : Node3D
             );
         }
 
-        if (_waveScene == null)
+        if (_waterShader == null)
         {
             GD.PrintErr(
-                "wave.glb를 불러올 수 없습니다."
+                "water.gdshader를 불러올 수 없습니다."
             );
         }
     }
@@ -205,15 +203,11 @@ public partial class WorldMap : Node3D
             {
                 int tileType =
                     _tiles[z][x] - '0';
-
-
                 Vector3 position =
                     GetTilePosition(
                         x,
                         z
                     );
-
-
                 if (tileType == Water)
                 {
                     CreateWaterTile(
@@ -317,10 +311,6 @@ public partial class WorldMap : Node3D
         if (_waterScene == null)
             return;
 
-        // -----------------------------
-        // Water
-        // -----------------------------
-
         Node3D water =
             _waterScene.Instantiate<Node3D>();
 
@@ -329,49 +319,47 @@ public partial class WorldMap : Node3D
         water.RotationDegrees =
             new Vector3(0, 90, 0);
 
+        ApplyWaterShader(
+            water,
+            position
+        );
+
         AddChild(water);
+    }
 
+    private void ApplyWaterShader(
+        Node node,
+        Vector3 position
+    )
+    {
+        if (node is MeshInstance3D mesh)
+        {
+            ShaderMaterial material =
+                new ShaderMaterial();
 
-        if (_waveScene == null)
-            return;
+            material.Shader =
+                _waterShader;
 
-
-        // -----------------------------
-        // Wave Root
-        // 실제 움직이는 Node
-        // -----------------------------
-
-        Wave waveRoot =
-            new Wave();
-
-        waveRoot.Name = "Wave";
-
-        waveRoot.Position =
-            new Vector3(
-                0,
-                0.1f,
-                0
+            material.SetShaderParameter(
+                "tile_position",
+                new Vector2(
+                    position.X,
+                    position.Z
+                )
             );
 
-        water.AddChild(waveRoot);
+            mesh.MaterialOverride =
+                material;
+        }
 
-
-        // -----------------------------
-        // Wave GLB
-        // 실제 보이는 모델
-        // -----------------------------
-
-        Node3D waveModel =
-            _waveScene.Instantiate<Node3D>();
-
-        waveModel.Position =
-            Vector3.Zero;
-
-        waveModel.Scale =
-            Vector3.One;
-
-        waveRoot.AddChild(waveModel);
-    }
+        foreach (Node child in node.GetChildren())
+        {
+            ApplyWaterShader(
+                child,
+                position
+            );
+        }
+    }    
 
 
     // --------------------------------------------------
