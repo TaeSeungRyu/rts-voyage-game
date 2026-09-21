@@ -9,6 +9,8 @@ public partial class WorldMap : Node3D
     private const int Water = 0;
     private const int Grass = 1;
 
+    private const float WaterHeight = 0.0f;
+    private const float GrassHeight = 0.08f;
 
     // --------------------------------------------------
     // 맵 설정
@@ -207,12 +209,14 @@ public partial class WorldMap : Node3D
                     );
                 if (tileType == Water)
                 {
+                    position.Y = WaterHeight;
                     CreateWaterTile(
                         position
                     );
                 }
                 else if (tileType == Grass)
                 {
+                    position.Y = GrassHeight;
                     CreateTile(
                         _grassScene,
                         position
@@ -292,7 +296,7 @@ public partial class WorldMap : Node3D
             new Vector3(
                 0,
                 90,
-                0
+              0
             );
 
 
