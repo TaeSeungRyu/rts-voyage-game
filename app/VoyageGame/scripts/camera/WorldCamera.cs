@@ -13,17 +13,27 @@ public partial class WorldCamera : Node3D
 
    public override void _Ready()
    {
+        _worldMap = GetParent().GetNode<WorldMap>("WorldMap");    
         _camera = new Camera3D
         {
             Current = true,
             Fov = 50.0f
         };
         AddChild(_camera);
-        _worldMap = GetParent().GetNode<WorldMap>("WorldMap");
-
-
         // 맵 중앙을 바라보게 함
         _focus = _worldMap.GetCenter();
+        // ★ 이 부분이 중요
+        _camera.Position = _focus + new Vector3(
+            0,
+            10,
+            10
+        );
+
+        // ★ 맵 중앙을 바라봄
+        _camera.LookAt(_focus);
+
+        GD.Print($"Camera Position: {_camera.GlobalPosition}");
+        GD.Print($"Map Focus: {_focus}");        
    }
 
     public void UpdateCamera()
