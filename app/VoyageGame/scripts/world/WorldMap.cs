@@ -1,36 +1,178 @@
 using Godot;
+using System;
 
 public partial class WorldMap : Node3D
 {
-    // GLB 모델 크기에 맞춰 조절할 값
-    public const float TileWidth = 1.0f;
-    public const float TileHeight = 1.0f;
+    // --------------------------------------------------
+    // 타일 타입
+    // --------------------------------------------------
 
-    private readonly int[,] _map =
-    {
-        { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-        { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-        { 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0 },
-        { 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0 },
-        { 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0 },
-        { 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0 },
-        { 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0 },
-        { 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 0 },
-        { 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0 },
-        { 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0 },
-        { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
-    };
+    private const int Water = 0;
+    private const int Grass = 1;
 
+
+    // --------------------------------------------------
+    // 맵 설정
+    // --------------------------------------------------
+
+    private float _tileWidth = 1.0f;
+    private float _tileHeight = 1.0f;
+
+    private string[] _tiles = Array.Empty<string>();
+
+
+    // --------------------------------------------------
+    // GLB Scene
+    // --------------------------------------------------
+
+    private PackedScene _waterScene = null!;
+    private PackedScene _grassScene = null!;
+    private PackedScene _waveScene = null!;
+
+
+    // --------------------------------------------------
+    // Ready
+    // --------------------------------------------------
 
     public override void _Ready()
     {
+        LoadScenes();
+
+        LoadMap();
+
         BuildMap();
     }
 
 
-    public int[,] GetMap()
+    // --------------------------------------------------
+    // GLB 로딩
+    // --------------------------------------------------
+
+    private void LoadScenes()
     {
-        return _map;
+        _waterScene =
+            GD.Load<PackedScene>(
+                "res://assets/models/water.glb"
+            );
+
+        _grassScene =
+            GD.Load<PackedScene>(
+                "res://assets/models/grass.glb"
+            );
+
+        _waveScene =
+            GD.Load<PackedScene>(
+                "res://assets/models/wave.glb"
+            );
+
+
+        if (_waterScene == null)
+        {
+            GD.PrintErr(
+                "water.glb를 불러올 수 없습니다."
+            );
+        }
+
+        if (_grassScene == null)
+        {
+            GD.PrintErr(
+                "grass.glb를 불러올 수 없습니다."
+            );
+        }
+
+        if (_waveScene == null)
+        {
+            GD.PrintErr(
+                "wave.glb를 불러올 수 없습니다."
+            );
+        }
+    }
+
+
+    // --------------------------------------------------
+    // JSON 맵 로딩
+    // --------------------------------------------------
+
+    private void LoadMap()
+    {
+        string path =
+            "res://assets/maps/world.json";
+
+
+        using FileAccess file =
+            FileAccess.Open(
+                path,
+                FileAccess.ModeFlags.Read
+            );
+
+
+        if (file == null)
+        {
+            GD.PrintErr(
+                $"맵 파일을 불러올 수 없습니다: {path}"
+            );
+
+            return;
+        }
+
+
+        string jsonText =
+            file.GetAsText();
+
+
+        Json json =
+            new Json();
+
+
+        Error error =
+            json.Parse(jsonText);
+
+
+        if (error != Error.Ok)
+        {
+            GD.PrintErr(
+                $"JSON 파싱 실패: {json.GetErrorMessage()}"
+            );
+
+            return;
+        }
+
+
+        Godot.Collections.Dictionary data =
+            json.Data.AsGodotDictionary();
+
+
+        // 타일 크기
+        _tileWidth =
+            (float)data["tileWidth"];
+
+        _tileHeight =
+            (float)data["tileHeight"];
+
+
+        // 타일 데이터
+        Godot.Collections.Array tileData =
+            data["tiles"].AsGodotArray();
+
+
+        _tiles =
+            new string[tileData.Count];
+
+
+        for (int i = 0; i < tileData.Count; i++)
+        {
+            _tiles[i] =
+                tileData[i].AsString();
+        }
+
+
+        if (_tiles.Length > 0)
+        {
+            GD.Print(
+                $"WorldMap Loaded: " +
+                $"{_tiles[0].Length} x {_tiles.Length}"
+            );
+        }
     }
 
 
@@ -40,53 +182,89 @@ public partial class WorldMap : Node3D
 
     private void BuildMap()
     {
-        int rows = _map.GetLength(0);
-        int columns = _map.GetLength(1);
+        if (_tiles.Length == 0)
+        {
+            GD.PrintErr(
+                "맵 데이터가 없습니다."
+            );
+
+            return;
+        }
+
+
+        int rows =
+            _tiles.Length;
+
+        int columns =
+            _tiles[0].Length;
+
 
         for (int z = 0; z < rows; z++)
         {
             for (int x = 0; x < columns; x++)
             {
-                int tileType = _map[z, x];
+                int tileType =
+                    _tiles[z][x] - '0';
 
-                Vector3 position = GetTilePosition(x, z);
 
-                if (tileType == 0)
+                Vector3 position =
+                    GetTilePosition(
+                        x,
+                        z
+                    );
+
+
+                if (tileType == Water)
                 {
-                    CreateTile(
-                        "res://assets/models/water.glb",
+                    CreateWaterTile(
                         position
                     );
                 }
-                else
+                else if (tileType == Grass)
                 {
                     CreateTile(
-                        "res://assets/models/grass.glb",
+                        _grassScene,
                         position
                     );
                 }
             }
         }
+
+
+        GD.Print(
+            $"WorldMap Build Complete: {rows * columns} tiles"
+        );
     }
 
 
     // --------------------------------------------------
-    // Hex 타일 좌표 계산
+    // Hex 타일 위치 계산
     // --------------------------------------------------
 
-    private Vector3 GetTilePosition(int x, int z)
+    private Vector3 GetTilePosition(
+        int x,
+        int z
+    )
     {
-        // 육각형은 좌우 타일이 일부 겹쳐서 배치됨
-        float posX = x * TileWidth * 0.75f;
+        float posX =
+            x
+            * _tileWidth
+            * 0.75f;
 
-        // 세로 방향 기본 간격
-        float posZ = z * TileHeight;
 
-        // 홀수 번째 열은 아래로 반 칸 이동
+        float posZ =
+            z
+            * _tileHeight;
+
+
+        // 홀수 열은 반 칸 아래로 이동
         if (x % 2 == 1)
         {
-            posZ += TileHeight * 0.5f;
+            posZ +=
+                _tileHeight
+                * 0.5f;
         }
+
 
         return new Vector3(
             posX,
@@ -97,54 +275,139 @@ public partial class WorldMap : Node3D
 
 
     // --------------------------------------------------
-    // GLB 타일 생성
+    // 일반 타일 생성
     // --------------------------------------------------
 
     private void CreateTile(
-        string path,
+        PackedScene scene,
         Vector3 position
     )
     {
-        PackedScene scene =
-            GD.Load<PackedScene>(path);
-
         if (scene == null)
         {
-            GD.PrintErr(
-                $"타일을 불러올 수 없습니다: {path}"
-            );
-
             return;
         }
+
 
         Node3D tile =
             scene.Instantiate<Node3D>();
 
-        tile.Position = position;
 
-        // 현재 GLB 방향에 맞춤
+        tile.Position =
+            position;
+
+
         tile.RotationDegrees =
-            new Vector3(0, 90, 0);
+            new Vector3(
+                0,
+                90,
+                0
+            );
+
 
         AddChild(tile);
     }
 
-    //중앙지점 알려주기
+
+    // --------------------------------------------------
+    // 바다 타일 생성
+    // --------------------------------------------------
+    private void CreateWaterTile(Vector3 position)
+    {
+        if (_waterScene == null)
+            return;
+
+        // -----------------------------
+        // Water
+        // -----------------------------
+
+        Node3D water =
+            _waterScene.Instantiate<Node3D>();
+
+        water.Position = position;
+
+        water.RotationDegrees =
+            new Vector3(0, 90, 0);
+
+        AddChild(water);
+
+
+        if (_waveScene == null)
+            return;
+
+
+        // -----------------------------
+        // Wave Root
+        // 실제 움직이는 Node
+        // -----------------------------
+
+        Wave waveRoot =
+            new Wave();
+
+        waveRoot.Name = "Wave";
+
+        waveRoot.Position =
+            new Vector3(
+                0,
+                0.1f,
+                0
+            );
+
+        water.AddChild(waveRoot);
+
+
+        // -----------------------------
+        // Wave GLB
+        // 실제 보이는 모델
+        // -----------------------------
+
+        Node3D waveModel =
+            _waveScene.Instantiate<Node3D>();
+
+        waveModel.Position =
+            Vector3.Zero;
+
+        waveModel.Scale =
+            Vector3.One;
+
+        waveRoot.AddChild(waveModel);
+    }
+
+
+    // --------------------------------------------------
+    // 맵 중앙 좌표
+    // --------------------------------------------------
+
     public Vector3 GetCenter()
     {
-        int rows = _map.GetLength(0);
-        int columns = _map.GetLength(1);
+        if (_tiles.Length == 0)
+        {
+            return Vector3.Zero;
+        }
+
+
+        int rows =
+            _tiles.Length;
+
+        int columns =
+            _tiles[0].Length;
+
 
         float mapWidth =
-            (columns - 1) * TileWidth * 0.75f;
+            (columns - 1)
+            * _tileWidth
+            * 0.75f;
+
 
         float mapHeight =
-            (rows - 1) * TileHeight;
+            (rows - 1)
+            * _tileHeight;
+
 
         return new Vector3(
             mapWidth / 2.0f,
             0,
             mapHeight / 2.0f
         );
-    }    
+    }
 }
