@@ -128,4 +128,23 @@ public partial class WorldMap : Node3D
 
         AddChild(tile);
     }
+
+    //중앙지점 알려주기
+    public Vector3 GetCenter()
+    {
+        int rows = _map.GetLength(0);
+        int columns = _map.GetLength(1);
+
+        float mapWidth =
+            (columns - 1) * TileWidth * 0.75f;
+
+        float mapHeight =
+            (rows - 1) * TileHeight;
+
+        return new Vector3(
+            mapWidth / 2.0f,
+            0,
+            mapHeight / 2.0f
+        );
+    }    
 }
