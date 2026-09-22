@@ -3,10 +3,20 @@
     {
       "id": "lisbon",
       "name": "리스본",
-      "x": 4,
-      "z": 2,
-      "rotation": 90,
+      "x": 23,
+      "z": 3,
+      "rotation": 180,
+      "height": 0.1,
       "model": "res://assets/models/port-small.glb"
-    }
+    },
+    {
+      "id": "korea",
+      "name": "대한민국",
+      "x": 37,
+      "z": 5,
+      "rotation": 45,
+      "height": 0.1,
+      "model": "res://assets/models/port-small.glb"
+    }    
   ]
 }

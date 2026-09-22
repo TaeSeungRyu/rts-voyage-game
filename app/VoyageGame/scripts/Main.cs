@@ -23,6 +23,13 @@ public partial class Main : Node3D
     private PlayerShip _playerShip = null!;
 
 
+
+    // --------------------------------------------------
+    // Port
+    // --------------------------------------------------
+    private PortManager _portManager = null!;    
+
+
     // --------------------------------------------------
     // Ready
     // --------------------------------------------------
@@ -32,6 +39,8 @@ public partial class Main : Node3D
         CreateEnvironment();
 
         CreateWorldMap();
+
+        CreatePorts();
 
         CreateWorldCamera();
 
@@ -190,4 +199,27 @@ public partial class Main : Node3D
             _playerShip
         );
     }
+
+    private void CreatePorts()
+    {
+        _portManager =
+            new PortManager();
+
+
+        _portManager.Name =
+            "PortManager";
+
+
+        AddChild(
+            _portManager
+        );
+
+
+        _portManager.SetWorldMap(
+            _worldMap
+        );
+
+
+        _portManager.LoadPorts();
+    }    
 }

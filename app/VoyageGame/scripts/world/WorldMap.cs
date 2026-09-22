@@ -271,7 +271,6 @@ public partial class WorldMap : Node3D
     // --------------------------------------------------
     // Hex 타일 위치 계산
     // --------------------------------------------------
-
     private Vector3 GetTilePosition(
         int x,
         int z
@@ -301,6 +300,18 @@ public partial class WorldMap : Node3D
             posX,
             0,
             posZ
+        );
+    }
+
+
+    public Vector3 GetTileWorldPosition(
+        int x,
+        int z
+    )
+    {
+        return GetTilePosition(
+            x,
+            z
         );
     }
 
