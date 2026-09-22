@@ -4,6 +4,13 @@ public partial class PlayerShip : Node3D
 {
     private const float MoveSpeed = 3.0f;
     private const float RotationSpeed = 5.0f;
+    private WorldMap _worldMap = null!;
+    public void SetWorldMap(
+        WorldMap worldMap
+    )
+    {
+        _worldMap = worldMap;
+    }
 
     public override void _Process(double delta)
     {
@@ -75,10 +82,20 @@ public partial class PlayerShip : Node3D
         float delta
     )
     {
-        Position +=
-            direction
+        Vector3 nextPosition =
+            Position
+            + direction
             * MoveSpeed
-            * delta;
+            * delta;        
+
+        // 이동할 곳이 바다가 아니면 이동하지 않는다.
+        if (_worldMap != null
+            && !_worldMap.IsWater(nextPosition))
+        {
+            return;
+        }
+        Position =
+            nextPosition;
     }
 
 

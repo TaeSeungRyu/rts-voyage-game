@@ -399,4 +399,48 @@ public partial class WorldMap : Node3D
             mapHeight / 2.0f
         );
     }
+
+
+    public bool IsWater(Vector3 worldPosition)
+    {
+        if (_tiles.Length == 0)
+            return false;
+
+        int columns = _tiles[0].Length;
+        int rows = _tiles.Length;
+
+        // 가장 가까운 Hex 열 계산
+        int x =
+            Mathf.RoundToInt(
+                worldPosition.X
+                / (_tileWidth * 0.75f)
+            );
+
+        if (x < 0 || x >= columns)
+            return false;
+
+
+        // 홀수 열의 Z 오프셋
+        float zOffset =
+            (x % 2 == 1)
+                ? _tileHeight * 0.5f
+                : 0.0f;
+
+
+        int z =
+            Mathf.RoundToInt(
+                (worldPosition.Z - zOffset)
+                / _tileHeight
+            );
+
+        if (z < 0 || z >= rows)
+            return false;
+
+
+        int tileType =
+            _tiles[z][x] - '0';
+
+
+        return tileType == Water;
+    }    
 }

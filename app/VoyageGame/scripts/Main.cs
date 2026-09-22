@@ -65,12 +65,14 @@ public partial class Main : Node3D
 
 
         _playerShip =
-            new PlayerShip();
-
+            new PlayerShip();   
 
         _playerShip.Name =
             "PlayerShip";
 
+        _playerShip.SetWorldMap(
+            _worldMap
+        );                    
 
         // 처음 시작할 위치
         _playerShip.Position =
