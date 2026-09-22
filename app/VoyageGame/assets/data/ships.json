@@ -1,0 +1,35 @@
+{
+  "small_sailboat": {
+    "name": "소형 범선",
+    "model": "res://assets/models/troop-medium-ship.glb",
+
+    "maxForwardSpeed": 3.5,
+    "maxBackwardSpeed": 1.8,
+
+    "forwardAcceleration": 3.5,
+    "backwardAcceleration": 2.2,
+
+    "deceleration": 2.0,
+    "turnSpeed": 3.2,
+
+    "collisionLength": 0.35,
+    "collisionWidth": 0.15
+  },
+
+  "merchant_ship": {
+    "name": "상선",
+    "model": "res://assets/models/troop-large-ship.glb",
+
+    "maxForwardSpeed": 2.5,
+    "maxBackwardSpeed": 1.0,
+
+    "forwardAcceleration": 2.0,
+    "backwardAcceleration": 1.5,
+
+    "deceleration": 1.5,
+    "turnSpeed": 2.0,
+
+    "collisionLength": 0.5,
+    "collisionWidth": 0.25
+  }
+}

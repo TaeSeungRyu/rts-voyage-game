@@ -2,79 +2,182 @@ using Godot;
 
 public partial class Main : Node3D
 {
+    // --------------------------------------------------
+    // World
+    // --------------------------------------------------
+
     private WorldMap _worldMap = null!;
+
+
+    // --------------------------------------------------
+    // Camera
+    // --------------------------------------------------
+
     private WorldCamera _worldCamera = null!;
+
+
+    // --------------------------------------------------
+    // Player
+    // --------------------------------------------------
+
     private PlayerShip _playerShip = null!;
+
+
+    // --------------------------------------------------
+    // Ready
+    // --------------------------------------------------
 
     public override void _Ready()
     {
-        BuildEnvironment();
+        CreateEnvironment();
 
-        // 월드맵 생성
-        _worldMap = new WorldMap{ Name = "WorldMap" };
-        AddChild(_worldMap);
-        // 월드 카메라 생성
-        _worldCamera = new WorldCamera { Name = "WorldCamera" };
-        AddChild(_worldCamera);
+        CreateWorldMap();
+
+        CreateWorldCamera();
 
         CreatePlayerShip();
     }
 
 
     // --------------------------------------------------
-    // 환경
+    // Environment
     // --------------------------------------------------
-    private void BuildEnvironment()
-    {
-        var worldEnvironment = new WorldEnvironment();
-        var environment = new Godot.Environment
-        {
-            BackgroundMode =
-                Godot.Environment.BGMode.Color,
-            BackgroundColor =
-                Colors.White,
-            AmbientLightSource =
-                Godot.Environment.AmbientSource.Color,
-            AmbientLightColor =
-                new Color(0.78f, 0.78f, 0.82f),
-            AmbientLightEnergy =
-                0.9f
-        };
-        worldEnvironment.Environment =
-            environment;
-        AddChild(worldEnvironment);
-        var sun = new DirectionalLight3D
-        {
-            RotationDegrees = new Vector3(-55, -35, 0),
-            LightEnergy = 0.1f,
-            ShadowEnabled = true
-        };
-        AddChild(sun);
-    }
 
-    private void CreatePlayerShip()
+    private void CreateEnvironment()
     {
-        PackedScene shipScene =
-            GD.Load<PackedScene>(
-                "res://assets/models/troop-medium-ship.glb"
+        WorldEnvironment worldEnvironment =
+            new WorldEnvironment();
+
+
+        Environment environment =
+            new Environment();
+
+
+        environment.BackgroundMode =
+            Environment.BGMode.Color;
+
+        environment.BackgroundColor =
+            new Color(
+                0.8f,
+                0.9f,
+                1.0f
             );
 
 
-        Node3D shipModel =
-            shipScene.Instantiate<Node3D>();
+        environment.AmbientLightSource =
+            Environment.AmbientSource.Color;
+
+        environment.AmbientLightColor =
+            Colors.White;
+
+        environment.AmbientLightEnergy =
+            0.8f;
 
 
+        worldEnvironment.Environment =
+            environment;
+
+
+        AddChild(
+            worldEnvironment
+        );
+
+
+        // --------------------------------------------------
+        // Directional Light
+        // --------------------------------------------------
+
+        DirectionalLight3D light =
+            new DirectionalLight3D();
+
+
+        light.RotationDegrees =
+            new Vector3(
+                -60.0f,
+                -30.0f,
+                0.0f
+            );
+
+
+        light.LightEnergy =
+            0.1f;
+
+
+        AddChild(
+            light
+        );
+    }
+
+
+    // --------------------------------------------------
+    // World Map
+    // --------------------------------------------------
+
+    private void CreateWorldMap()
+    {
+        _worldMap =
+            new WorldMap();
+
+
+        _worldMap.Name =
+            "WorldMap";
+
+
+        AddChild(
+            _worldMap
+        );
+    }
+
+
+    // --------------------------------------------------
+    // Camera
+    // --------------------------------------------------
+
+    private void CreateWorldCamera()
+    {
+        _worldCamera =
+            new WorldCamera();
+
+
+        _worldCamera.Name =
+            "WorldCamera";
+
+        AddChild(
+            _worldCamera
+        );
+    }
+
+
+    // --------------------------------------------------
+    // Player Ship
+    // --------------------------------------------------
+
+    private void CreatePlayerShip()
+    {
         _playerShip =
-            new PlayerShip();   
+            new PlayerShip();
+
 
         _playerShip.Name =
             "PlayerShip";
 
+
+        // WorldMap 전달
+        // 육지 충돌 검사에 사용
         _playerShip.SetWorldMap(
             _worldMap
-        );                    
+        );
 
-        // 처음 시작할 위치
+
+        // 사용할 배 선택
+        //
+        // ships.json의 ID만 전달한다.
+        _playerShip.LoadShip(
+            "merchant_ship"
+        );
+
+
+        // 시작 위치
         _playerShip.Position =
             new Vector3(
                 15.0f,
@@ -83,13 +186,8 @@ public partial class Main : Node3D
             );
 
 
-        _playerShip.AddChild(
-            shipModel
-        );
-
-
         AddChild(
             _playerShip
         );
-    }    
+    }
 }
