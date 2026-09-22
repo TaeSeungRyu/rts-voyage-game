@@ -1,0 +1,12 @@
+{
+  "ports": [
+    {
+      "id": "lisbon",
+      "name": "리스본",
+      "x": 4,
+      "z": 2,
+      "rotation": 90,
+      "model": "res://assets/models/port-small.glb"
+    }
+  ]
+}
