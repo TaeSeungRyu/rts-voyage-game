@@ -6,8 +6,10 @@ public partial class WorldMap : Node3D
     // --------------------------------------------------
     // 타일 타입
     // --------------------------------------------------
-    private const int Water = 0;
-    private const int Grass = 1;
+    private const int Water = 0; //바다
+    private const int Grass = 1; //육지
+    private const int Port = 2; //항구
+    //
 
     private const float WaterHeight = 0.0f;
     private const float GrassHeight = 0.08f;
@@ -26,6 +28,7 @@ public partial class WorldMap : Node3D
 
     private PackedScene _waterScene = null!;
     private PackedScene _grassScene = null!;
+    private PackedScene _portScene = null!;
     private Shader _waterShader = null!;
 
 
@@ -61,6 +64,11 @@ public partial class WorldMap : Node3D
         _waterShader =
             GD.Load<Shader>(
                 "res://assets/shaders/water.gdshader"
+            );            
+
+        _portScene  =
+            GD.Load<PackedScene>(
+                "res://assets/models/port-small.glb"
             );            
 
         if (_waterScene == null)
@@ -222,6 +230,34 @@ public partial class WorldMap : Node3D
                         position
                     );
                 }
+                else if (tileType == Port)
+                {
+                    // 항구도 기본적으로 육지이므로
+                    // 먼저 Grass 생성
+                    Vector3 grassPosition =
+                        position;
+
+                    grassPosition.Y =
+                        GrassHeight;
+
+                    CreateTile(
+                        _grassScene,
+                        grassPosition
+                    );
+
+
+                    // 그 위에 항구 건물 생성
+                    Vector3 portPosition =
+                        position;
+
+                    portPosition.Y =
+                        GrassHeight;
+
+                    CreateTile(
+                        _portScene,
+                        portPosition
+                    );
+                }                
             }
         }
 
